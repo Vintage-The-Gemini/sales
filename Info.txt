@@ -1,0 +1,11 @@
+SKYNET IMS and Sales Inventory
+
+admin
+user: admin
+pass: admin123
+
+cashier
+user: cashier
+pass: 12345
+
+Renzi
