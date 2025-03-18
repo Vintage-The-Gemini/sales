@@ -14,6 +14,10 @@ require_once('auth.php');
     <title>SKYNET IMS</title>
 
     <link rel="shortcut icon" href="logoc.jpg">
+
+    <!-- jQuery - ONLY LOAD ONE VERSION -->
+    <script src="../vendor/jquery/jquery.min.js"></script>
+
     <!-- Bootstrap Core CSS -->
     <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
@@ -32,6 +36,15 @@ require_once('auth.php');
     <!-- Custom Fonts -->
     <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
+    <!-- Facebox CSS -->
+    <link href="src/facebox.css" media="screen" rel="stylesheet" type="text/css" />
+
+    <!-- Print CSS -->
+    <link rel="stylesheet" type="text/css" media="print" href="print.css" />
+
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -39,11 +52,28 @@ require_once('auth.php');
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <link href="src/facebox.css" media="screen" rel="stylesheet" type="text/css" />
-    <script src="lib/jquery.js" type="text/javascript"></script>
+    <?php
+    function productcode()
+    {
+        $chars = "003232303232023232023456789";
+        srand((float)microtime() * 1000000);
+        $i = 0;
+        $pass = '';
+        while ($i <= 7) {
+            $num = rand() % 33;
+            $tmp = substr($chars, $num, 1);
+            $pass = $pass . $tmp;
+            $i++;
+        }
+        return $pass;
+    }
+    $pcode = 'P-' . productcode();
+    ?>
+
+    <!-- Facebox JS - Use the already loaded jQuery -->
     <script src="src/facebox.js" type="text/javascript"></script>
     <script type="text/javascript">
-        jQuery(document).ready(function($) {
+        $(document).ready(function() {
             $('a[rel*=facebox]').facebox({
                 loadingImage: 'src/loading.gif',
                 closeImage: 'src/closelabel.png'
@@ -51,7 +81,8 @@ require_once('auth.php');
         });
     </script>
 
-    <link rel="stylesheet" type="text/css" media="print" href="print.css" />
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -129,7 +160,9 @@ require_once('auth.php');
                                         <a rel="facebox" class="btn btn-primary btn-sm" href="editproduct.php?id=<?php echo $row['product_id']; ?>">
                                             <i class="fa fa-pencil"></i> Edit
                                         </a>
-                                        <!-- Delete button removed as per original code comment -->
+                                        <a href="#" data-id="<?php echo $row['product_id']; ?>" data-name="<?php echo $row['product_name']; ?>" class="btn btn-danger btn-sm delete-btn">
+                                            <i class="fa fa-trash"></i> Delete
+                                        </a>
                                     </td>
                                 </tr>
                             <?php
@@ -145,9 +178,6 @@ require_once('auth.php');
             </div>
         </div>
     </div>
-
-    <!-- jQuery (already included above but including again as in original) -->
-    <script src="../vendor/jquery/jquery.min.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
@@ -172,30 +202,63 @@ require_once('auth.php');
         });
     </script>
 
-    <!-- Product deletion script from original -->
+    <!-- Product deletion script with SweetAlert -->
     <script type="text/javascript">
         $(function() {
-            $(".delbutton").click(function() {
-                //Save the link in a variable called element
+            $(".delete-btn").click(function() {
+                // Save the link in a variable called element
                 var element = $(this);
-                //Find the id of the link that was clicked
-                var del_id = element.attr("id");
-                //Built a url to send
-                var info = 'id=' + del_id;
-                if (confirm("Sure you want to delete this product? There is NO undo!")) {
-                    $.ajax({
-                        type: "GET",
-                        url: "deleteproduct.php",
-                        data: info,
-                        success: function() {}
-                    });
-                    $(this).parents(".record").animate({
-                            backgroundColor: "#fbc7c7"
-                        }, "fast")
-                        .animate({
-                            opacity: "hide"
-                        }, "slow");
-                }
+                // Find the id and name of the product
+                var del_id = element.data("id");
+                var product_name = element.data("name");
+
+                // Show SweetAlert2 confirmation
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You're about to delete product '" + product_name + "'. This action cannot be undone!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Built a url to send
+                        var info = 'id=' + del_id;
+
+                        // Send delete request
+                        $.ajax({
+                            type: "GET",
+                            url: "deleteproduct.php",
+                            data: info,
+                            success: function() {
+                                // Show success message
+                                Swal.fire(
+                                    'Deleted!',
+                                    'The product has been deleted.',
+                                    'success'
+                                );
+
+                                // Animate the row removal
+                                element.parents(".record").animate({
+                                    backgroundColor: "#fbc7c7"
+                                }, "fast").animate({
+                                    opacity: "hide"
+                                }, "slow");
+                            },
+                            error: function() {
+                                // Show error message
+                                Swal.fire(
+                                    'Error!',
+                                    'There was a problem deleting the product.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+
                 return false;
             });
         });

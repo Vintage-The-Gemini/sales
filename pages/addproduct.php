@@ -1,19 +1,5 @@
 <?php
-function productcode()
-{
-    $chars = "003232303232023232023456789";
-    srand((float)microtime() * 1000000);
-    $i = 0;
-    $pass = '';
-    while ($i <= 7) {
-        $num = rand() % 33;
-        $tmp = substr($chars, $num, 1);
-        $pass = $pass . $tmp;
-        $i++;
-    }
-    return $pass;
-}
-$pcode = 'P-' . productcode();
+
 ?>
 <!-- Modal for Adding a Product -->
 <div class="modal fade" id="add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
