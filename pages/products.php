@@ -5,7 +5,6 @@ require_once('auth.php');
 <html lang="en">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,10 +37,9 @@ require_once('auth.php');
     <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-        <![endif]-->
-    <link href="src/facebox.css" media="screen" rel="stylesheet" type="text/css" />
+    <![endif]-->
 
-    <link rel="stylesheet" type="text/css" media="print" href="print.css" />
+    <link href="src/facebox.css" media="screen" rel="stylesheet" type="text/css" />
     <script src="lib/jquery.js" type="text/javascript"></script>
     <script src="src/facebox.js" type="text/javascript"></script>
     <script type="text/javascript">
@@ -49,37 +47,15 @@ require_once('auth.php');
             $('a[rel*=facebox]').facebox({
                 loadingImage: 'src/loading.gif',
                 closeImage: 'src/closelabel.png'
-            })
-        })
+            });
+        });
     </script>
 
-    <?php
-    function productcode()
-    {
-        $chars = "003232303232023232023456789";
-        srand((float)microtime() * 1000000);
-        $i = 0;
-        $pass = '';
-        while ($i <= 7) {
-
-            $num = rand() % 33;
-
-            $tmp = substr($chars, $num, 1);
-
-            $pass = $pass . $tmp;
-
-            $i++;
-        }
-        return $pass;
-    }
-    $pcode = 'P-' . productcode();
-    ?>
-
+    <link rel="stylesheet" type="text/css" media="print" href="print.css" />
 </head>
 
 <body>
     <?php include('navfixed.php'); ?>
-
 
     <div id="page-wrapper">
         <div class="row">
@@ -88,27 +64,29 @@ require_once('auth.php');
             </div>
             <div id="maintable">
                 <div style="margin-top: -19px; margin-bottom: 21px;">
+                    <a href="#add" data-toggle="modal" class="btn btn-primary">
+                        <i class="fa fa-plus"></i> Add Product
+                    </a>
 
-                    <a href="#add" data-toggle="modal" class="btn btn-primary">Add Product</a>
+                    <!-- Include the Add Product Modal -->
                     <?php include 'addproduct.php'; ?>
-                    <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
 
+                    <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
                         <thead>
                             <tr>
-                                <th> Code </th>
-                                <th> Brand Name </th>
-                                <th> Description </th>
-                                <th> Category </th>
-                                <th> Cost </th>
-                                <th> SRP </th>
-                                <th> Supplier </th>
-                                <th witdh="10%"> Quantity Left </th>
-                                <th witdh="10%"> Product Unit </th>
-                                <th> Action </th>
+                                <th>Code</th>
+                                <th>Brand Name</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Cost</th>
+                                <th>SRP</th>
+                                <th>Supplier</th>
+                                <th width="10%">Quantity Left</th>
+                                <th width="10%">Product Unit</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-
                             <?php
                             function formatMoney($number, $fractional = false)
                             {
@@ -125,6 +103,7 @@ require_once('auth.php');
                                 }
                                 return $number;
                             }
+
                             include('connect.php');
                             $result = $db->prepare("SELECT * FROM products ORDER BY product_name");
                             $result->execute();
@@ -146,74 +125,28 @@ require_once('auth.php');
                                     <td><?php echo $row['supplier']; ?></td>
                                     <td align="right"><?php echo $row['qty_left']; ?></td>
                                     <td><?php echo $row['unit']; ?></td>
-                                    <td><a rel="facebox" class="btn btn-primary" href="editproduct.php?id=<?php echo $row['product_id']; ?>">
-                                            <i class="fa fa-pencil"></i>
+                                    <td>
+                                        <a rel="facebox" class="btn btn-primary btn-sm" href="editproduct.php?id=<?php echo $row['product_id']; ?>">
+                                            <i class="fa fa-pencil"></i> Edit
                                         </a>
-                                        <!--   <a href="#" id="<?php echo $row['product_id']; ?>" class="btn btn-danger delbutton" title="Click To Delete">
-                                                <i class="fa fa-trash"></i>
-                                            </a> -->
+                                        <!-- Delete button removed as per original code comment -->
                                     </td>
                                 </tr>
                             <?php
                             }
                             ?>
-
                         </tbody>
                     </table>
 
-                    <a href="" onclick="window.print()" class="btn btn-primary"><i class="icon-print icon-large"></i> Print</a>
-                    <a href="product_exp.php" class="btn btn-primary">View Product Expiration</a>
+                    <a href="" onclick="window.print()" class="btn btn-primary"><i class="fa fa-print"></i> Print</a>
+                    <a href="product_exp.php" class="btn btn-primary"><i class="fa fa-calendar"></i> View Product Expiration</a>
                     <div class="clearfix"></div>
                 </div>
-
-
-                <script src="js/jquery.js"></script>
-                <script type="text/javascript">
-                    $(function() {
-                        $(".delbutton").click(function() {
-
-                            //Save the link in a variable called element
-                            var element = $(this);
-
-                            //Find the id of the link that was clicked
-                            var del_id = element.attr("id");
-
-                            //Built a url to send
-                            var info = 'id=' + del_id;
-                            if (confirm("Sure you want to delete this update? There is NO undo!")) {
-
-                                $.ajax({
-                                    type: "GET",
-                                    url: "deleteproduct.php",
-                                    data: info,
-                                    success: function() {
-
-                                    }
-                                });
-                                $(this).parents(".record").animate({
-                                        backgroundColor: "#fbc7c7"
-                                    }, "fast")
-                                    .animate({
-                                        opacity: "hide"
-                                    }, "slow");
-
-                            }
-
-                            return false;
-
-                        });
-
-                    });
-                </script>
-
             </div>
-            <!-- /.row -->
         </div>
-
     </div>
-    <!-- /#wrapper -->
 
-    <!-- jQuery -->
+    <!-- jQuery (already included above but including again as in original) -->
     <script src="../vendor/jquery/jquery.min.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
@@ -230,7 +163,7 @@ require_once('auth.php');
     <!-- Custom Theme JavaScript -->
     <script src="../dist/js/sb-admin-2.js"></script>
 
-    <!-- Page-Level Demo Scripts - Tables - Use for reference -->
+    <!-- Initialize DataTables -->
     <script>
         $(document).ready(function() {
             $('#dataTables-example').DataTable({
@@ -239,7 +172,34 @@ require_once('auth.php');
         });
     </script>
 
-
+    <!-- Product deletion script from original -->
+    <script type="text/javascript">
+        $(function() {
+            $(".delbutton").click(function() {
+                //Save the link in a variable called element
+                var element = $(this);
+                //Find the id of the link that was clicked
+                var del_id = element.attr("id");
+                //Built a url to send
+                var info = 'id=' + del_id;
+                if (confirm("Sure you want to delete this product? There is NO undo!")) {
+                    $.ajax({
+                        type: "GET",
+                        url: "deleteproduct.php",
+                        data: info,
+                        success: function() {}
+                    });
+                    $(this).parents(".record").animate({
+                            backgroundColor: "#fbc7c7"
+                        }, "fast")
+                        .animate({
+                            opacity: "hide"
+                        }, "slow");
+                }
+                return false;
+            });
+        });
+    </script>
 </body>
 
 </html>
