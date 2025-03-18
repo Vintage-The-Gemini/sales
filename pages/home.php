@@ -184,7 +184,8 @@ require_once('auth.php');
 				AND
 				products.expiration_date <= DATE_ADD(DATE(now()), INTERVAL 1 MONTH)";
 						$query = $db->prepare($sql);
-						$query->execute(array($today));
+						// Remove the parameter that was causing the error
+						$query->execute();
 						$fetch = $query->fetchAll();
 						$rowcount = $query->rowcount();
 						?>
